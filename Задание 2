@@ -1,0 +1,122 @@
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+const int TABLE_SIZE = 10;
+
+struct Flight {
+	string kyda;
+	int number;
+	string kogda;
+};
+
+struct HashTable {
+	Flight table[TABLE_SIZE];
+	bool np[TABLE_SIZE];
+};
+
+int hash1(int key) {
+	return key % TABLE_SIZE;
+}
+
+int hash2(int key) {
+	return 7 - (key % 7);
+}
+
+int doubleHash(int key, int i) {
+	return (hash1(key) + i * hash2(key)) % TABLE_SIZE;
+}
+
+void insert(HashTable& ht, Flight f) {
+	int i = 0;
+	int index = doubleHash(f.number, i);
+	while (ht.np[index] && i < TABLE_SIZE) {
+		i++;
+		index = doubleHash(f.number, i);
+	}
+	if (i == TABLE_SIZE) {
+		cout << "Хеш-таблица заполнена" << endl;
+		return;
+	}
+	ht.table[index] = f;
+	ht.np[index] = true;
+}
+
+void printTable(HashTable ht) {
+	for (int i = 0; i < TABLE_SIZE; i++) {
+		if (ht.np[i]) {
+			cout << i << ": " << ht.table[i].kyda << ", " << ht.table[i].number << ", " << ht.table[i].kogda << endl;
+		}
+		else {
+			cout << i << ": " << "пустота" << endl;
+		}
+	}
+}
+
+Flight search(HashTable ht, int key) {
+	int i = 0;
+	int index = doubleHash(key, i);
+	while (ht.np[index] && ht.table[index].number != key && i < TABLE_SIZE) {
+		i++;
+		index = doubleHash(key, i);
+	}
+	if (ht.np[index] && ht.table[index].number == key) {
+		return ht.table[index];
+	}
+	else {
+		Flight f;
+		f.number = -1;
+		return f;
+	}
+}
+
+int main()
+{
+	setlocale(0, "ru");
+	Flight flights[8] = {
+		{"Урал", 123, "10:00"},
+		{"Антарктида", 456, "12:00"},
+		{"Марс", 789, "14:00"},
+		{"Токио", 101, "16:00"},
+		{"Сингапур", 112, "18:00"},
+		{"Юпитер", 131, "20:00"},
+		{"Филиал ада", 415, "22:00"},
+		{"Ibengrad", 617, "00:00"}
+	};
+
+	HashTable ht;
+	for (int i = 0; i < TABLE_SIZE; i++) {
+		ht.np[i] = false;
+	}
+
+	for (int i = 0; i < 8; i++) {
+		insert(ht, flights[i]);
+	}
+
+	cout << "Массив:" << endl;
+	for (int i = 0; i < 8; i++) {
+		cout << flights[i].kyda << ", " << flights[i].number << ", " << flights[i].kogda << endl;
+	}
+
+	cout << endl << "Хеш-таблица:" << endl;
+	printTable(ht);
+
+	while (true) {
+		cout << "Введите номер рейса (для выхода введите  '666'): " << endl;
+		int in;
+		cin >> in;
+		if (in == 666)
+			break;
+		int key = in; 
+		Flight result = search(ht, key);
+		if (result.number == -1) {
+			cout << "Рейс под номером " << key << " не найден" << endl;
+		}
+		else {
+			cout << "Найден полет: " << result.kyda << ", " << result.number << ", " << result.kogda << endl << endl;
+		}
+	}
+
+	return 0;
+}
